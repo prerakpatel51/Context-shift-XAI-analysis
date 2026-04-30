@@ -1,0 +1,48 @@
+methods: [token_transformation, context_swap, occlusion, faithfulness_topk, attention_rollout, attention_weights, patch_attribution, causal_patch_impact, tam, concept_dissect, patch_interaction, shap, counterfactual]
+num_samples: 200
+patch_size: 16
+occlusion_baseline: mean
+occlusion_window_size: 16
+occlusion_stride: 16
+topk_values: [0.05, 0.10, 0.20, 0.30, 0.50]
+attention_discard_ratio: 0.0
+causal_patch_impact:
+  baseline: mean_token
+  compute_kl_divergence: true
+  layer: patch_embed
+  fallback_to_input_ablation: true
+tam:
+  use_positive_gradients_only: true
+  normalize_per_layer: true
+concept_dissect:
+  enabled: true
+  use_clip: true
+  require_clip: true
+  clip_model: /home1/ppatel2025/.cache/huggingface/hub/models--openai--clip-vit-base-patch32/snapshots/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268
+  patch_size: 32
+  top_patch_concepts: 20
+  concept_dict: [animal, bird, dog, cat, person, vehicle, grass, snow, water, forest, street, indoor, outdoor, sky, beach, mountain, field, road]
+  patch_crop_analysis: true
+  image_level_analysis: true
+patch_interaction:
+  top_edges: 30
+  layers: all
+  heads: average
+context_swap:
+  swap_fraction: 0.25
+counterfactual_steps: 300
+counterfactual_lr: 0.03
+counterfactual_target: second_best
+lambda_l2: 0.01
+lambda_tv: 0.001
+lambda_l1: 0.001
+lambda_linf: 0.05
+linf_budget: 0.5
+counterfactual_semantic_top_fraction: 0.25
+shap:
+  n_samples: 512
+  baseline: mean
+  seed: 0
+agreement_topk_frac: 0.1
+save_individual_plots: true
+save_aggregate_plots: true

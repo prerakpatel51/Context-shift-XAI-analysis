@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1260" viewBox="0 0 1500 1260" role="img" aria-label="DeiT-Small architecture diagram">
+  <defs>
+    <style>
+      .bg{fill:#ffffff}
+      .title{font:700 34px Arial,sans-serif;fill:#111827}
+      .subtitle{font:400 18px Arial,sans-serif;fill:#4b5563}
+      .section{font:700 25px Arial,sans-serif;fill:#111827}
+      .label{font:700 17px Arial,sans-serif;fill:#111827;text-anchor:middle}
+      .small{font:400 14px Arial,sans-serif;fill:#374151;text-anchor:middle}
+      .note{font:400 15px Arial,sans-serif;fill:#374151}
+      .box{stroke-width:2.2;rx:14;ry:14}
+      .blue{fill:#e0f2fe;stroke:#0369a1}
+      .green{fill:#dcfce7;stroke:#047857}
+      .orange{fill:#ffedd5;stroke:#c2410c}
+      .pink{fill:#fdf2f8;stroke:#be185d;stroke-dasharray:8 6}
+      .gray{fill:#f8fafc;stroke:#334155}
+      .arrow{stroke:#334155;stroke-width:2.6;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,8 L11,4 z" fill="#334155"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1500" height="1260"/>
+  <text x="750" y="48" class="title" text-anchor="middle">DeiT-Small/16 Architecture for NICO++</text>
+  <text x="750" y="80" class="subtitle" text-anchor="middle">224 x 224 RGB input - 196 patch tokens - 12 transformer encoder blocks - 60 object classes</text>
+
+  <text x="80" y="135" class="section">1. Patch Tokenization</text>
+  <rect class="box blue" x="90" y="165" width="180" height="82"/>
+  <text class="label" x="180" y="198">Input image</text>
+  <text class="small" x="180" y="222">224 x 224 x 3</text>
+
+  <rect class="box blue" x="330" y="165" width="180" height="82"/>
+  <text class="label" x="420" y="198">Patchify</text>
+  <text class="small" x="420" y="222">16 x 16 patches</text>
+
+  <rect class="box blue" x="570" y="165" width="200" height="82"/>
+  <text class="label" x="670" y="198">Patch grid</text>
+  <text class="small" x="670" y="222">14 x 14 = 196</text>
+
+  <rect class="box blue" x="830" y="165" width="200" height="82"/>
+  <text class="label" x="930" y="198">Patch projection</text>
+  <text class="small" x="930" y="222">768 to 384</text>
+
+  <rect class="box blue" x="1090" y="165" width="180" height="82"/>
+  <text class="label" x="1180" y="198">Token sequence</text>
+  <text class="small" x="1180" y="222">196 x 384</text>
+
+  <path class="arrow" d="M270 206 H330"/>
+  <path class="arrow" d="M510 206 H570"/>
+  <path class="arrow" d="M770 206 H830"/>
+  <path class="arrow" d="M1030 206 H1090"/>
+
+  <rect class="box blue" x="520" y="295" width="210" height="82"/>
+  <text class="label" x="625" y="328">Add CLS token</text>
+  <text class="small" x="625" y="352">197 x 384</text>
+
+  <rect class="box blue" x="790" y="295" width="210" height="82"/>
+  <text class="label" x="895" y="328">Add position</text>
+  <text class="small" x="895" y="352">learned embedding</text>
+
+  <path class="arrow" d="M1180 247 V270 H625 V295"/>
+  <path class="arrow" d="M730 336 H790"/>
+
+  <text x="80" y="450" class="section">2. Transformer Encoder Stack</text>
+  <rect class="box green" x="100" y="485" width="185" height="82"/>
+  <text class="label" x="192" y="518">Dropout</text>
+  <text class="small" x="192" y="542">197 x 384</text>
+
+  <rect class="box green" x="350" y="485" width="185" height="82"/>
+  <text class="label" x="442" y="518">Block 1</text>
+  <text class="small" x="442" y="542">encoder layer</text>
+
+  <rect class="box green" x="600" y="485" width="185" height="82"/>
+  <text class="label" x="692" y="518">Block 2</text>
+  <text class="small" x="692" y="542">encoder layer</text>
+
+  <rect class="box green" x="850" y="485" width="185" height="82"/>
+  <text class="label" x="942" y="518">Blocks 3-11</text>
+  <text class="small" x="942" y="542">same structure</text>
+
+  <rect class="box green" x="1100" y="485" width="185" height="82"/>
+  <text class="label" x="1192" y="518">Block 12</text>
+  <text class="small" x="1192" y="542">encoder layer</text>
+
+  <path class="arrow" d="M895 377 V425 H192 V485"/>
+  <path class="arrow" d="M285 526 H350"/>
+  <path class="arrow" d="M535 526 H600"/>
+  <path class="arrow" d="M785 526 H850"/>
+  <path class="arrow" d="M1035 526 H1100"/>
+
+  <text x="80" y="640" class="section">3. Classifier Head</text>
+  <rect class="box orange" x="180" y="675" width="210" height="82"/>
+  <text class="label" x="285" y="708">Final LayerNorm</text>
+  <text class="small" x="285" y="732">197 x 384</text>
+
+  <rect class="box orange" x="470" y="675" width="210" height="82"/>
+  <text class="label" x="575" y="708">Select CLS token</text>
+  <text class="small" x="575" y="732">1 x 384</text>
+
+  <rect class="box orange" x="760" y="675" width="210" height="82"/>
+  <text class="label" x="865" y="708">Linear head</text>
+  <text class="small" x="865" y="732">384 to 60</text>
+
+  <rect class="box orange" x="1050" y="675" width="210" height="82"/>
+  <text class="label" x="1155" y="708">Softmax output</text>
+  <text class="small" x="1155" y="732">60 class probabilities</text>
+
+  <path class="arrow" d="M1192 567 V620 H285 V675"/>
+  <path class="arrow" d="M390 716 H470"/>
+  <path class="arrow" d="M680 716 H760"/>
+  <path class="arrow" d="M970 716 H1050"/>
+
+  <text x="80" y="830" class="section">Inside One Transformer Block</text>
+  <rect class="box gray" x="90" y="860" width="1320" height="200"/>
+
+  <rect class="box green" x="130" y="910" width="165" height="70"/>
+  <text class="label" x="212" y="940">LayerNorm</text>
+  <text class="small" x="212" y="962">pre-attention</text>
+
+  <rect class="box green" x="355" y="910" width="180" height="70"/>
+  <text class="label" x="445" y="940">Self-attention</text>
+  <text class="small" x="445" y="962">6 heads</text>
+
+  <rect class="box green" x="595" y="910" width="175" height="70"/>
+  <text class="label" x="682" y="940">Residual add</text>
+  <text class="small" x="682" y="962">skip connection</text>
+
+  <rect class="box green" x="830" y="910" width="165" height="70"/>
+  <text class="label" x="912" y="940">LayerNorm</text>
+  <text class="small" x="912" y="962">pre-MLP</text>
+
+  <rect class="box green" x="1055" y="910" width="210" height="70"/>
+  <text class="label" x="1160" y="940">MLP</text>
+  <text class="small" x="1160" y="962">384 to 1536 to 384</text>
+
+  <path class="arrow" d="M295 945 H355"/>
+  <path class="arrow" d="M535 945 H595"/>
+  <path class="arrow" d="M770 945 H830"/>
+  <path class="arrow" d="M995 945 H1055"/>
+
+  <text class="note" x="130" y="1025">Each block has two residual paths: one around self-attention and one around the MLP. They are shown as text here to avoid crossing arrows.</text>
+
+  <text x="80" y="1135" class="section">Patch-Level XAI Hook Points</text>
+  <rect class="box pink" x="100" y="1165" width="240" height="62"/>
+  <text class="label" x="220" y="1190">Token transform</text>
+  <text class="small" x="220" y="1210">patch token movement</text>
+
+  <rect class="box pink" x="390" y="1165" width="240" height="62"/>
+  <text class="label" x="510" y="1190">Rollout / TAM</text>
+  <text class="small" x="510" y="1210">attention and gradients</text>
+
+  <rect class="box pink" x="680" y="1165" width="240" height="62"/>
+  <text class="label" x="800" y="1190">Occlusion / SHAP</text>
+  <text class="small" x="800" y="1210">input patch masking</text>
+
+  <rect class="box pink" x="970" y="1165" width="240" height="62"/>
+  <text class="label" x="1090" y="1190">Gradient x input</text>
+  <text class="small" x="1090" y="1210">target-logit gradient</text>
+</svg>

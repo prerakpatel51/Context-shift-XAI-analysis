@@ -1,0 +1,11 @@
+data_root: data/raw/nico
+processed_root: data/processed/nico
+split_dir: data/splits
+image_size: 224
+num_workers: 8
+layout: auto
+use_metadata_if_available: true
+create_context_heldout_split: true
+val_fraction: 0.15
+test_fraction: 0.20
+seed: 42

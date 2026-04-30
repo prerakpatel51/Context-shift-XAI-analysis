@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+ENV/
+.conda/
+
+# Data and generated outputs
+data/raw/
+data/processed/
+outputs/
+*.pt
+*.pth
+*.ckpt
+
+# Keep README figures even though generated outputs are ignored.
+!readme_assets/
+!readme_assets/**
+
+# Logs and scheduler output
+*.log
+slurm-*.out
+*.out
+*.err
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.synctex.gz
+*.toc
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
