@@ -5,6 +5,34 @@ audits its patch-level explanations under context shift. The model is trained on
 60 object classes across six contexts, then evaluated with transformer,
 gradient, perturbation, SHAP, and context-swap explanation methods.
 
+## Goal and Importance
+
+The goal of this project is to answer a practical question: when a Vision
+Transformer predicts an object class, is it using the object itself or the
+surrounding context as evidence? NICO++ is useful for this because each object
+class appears across annotated environments such as `grass`, `water`, `rock`,
+`dim`, `outdoor`, and `autumn`. That makes it possible to test whether a model
+that is accurate overall is also robust across context changes.
+
+This matters because high classification accuracy can hide shortcut learning. A
+model may correctly classify many images while depending on background cues that
+do not generalize, such as water for marine-looking scenes or low-light texture
+in `dim` images. For deployment, that failure mode is important: the model may
+look reliable on aggregate metrics but behave inconsistently when the same
+object appears in a different environment.
+
+This project therefore combines three checks:
+
+| Check | Why it matters |
+|---|---|
+| Per-context evaluation | Shows whether accuracy changes across environments instead of only reporting one aggregate score. |
+| Patch-level XAI | Shows which image patches support the prediction on the ViT token grid. |
+| Context-swap intervention | Tests whether top-attributed patches carry object evidence or context-specific evidence. |
+
+The main audit outcome is not just "what did the model predict?", but "what
+evidence did the model use, and does that evidence stay stable when context
+changes?"
+
 
 ## Main Results
 
