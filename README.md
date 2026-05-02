@@ -46,7 +46,7 @@ changes?"
 
 The aggregate score is strong, but context still matters. Context accuracy spans
 from 0.8892 in `dim` to 0.9274 in `grass`, and the report finds that patch-level
-context swaps flip 20% of same-class cross-context pairs.
+top-attribution context swaps flip 44% of same-class cross-context pairs.
 
 | Context | Accuracy |
 |---|---:|
@@ -76,22 +76,23 @@ prediction.
 
 | Method | Deletion AUC | Std. |
 |---|---:|---:|
-| **TAM** | **0.1579** | 0.1711 |
-| Attention rollout | 0.2022 | 0.1850 |
-| Token transformation | 0.2236 | 0.1926 |
-| Causal patch impact | 0.2264 | 0.1941 |
-| Occlusion | 0.2264 | 0.1941 |
-| Gradient x input | 0.2265 | 0.2021 |
-| Kernel SHAP | 0.2562 | 0.2091 |
+| **TAM** | **0.1581** | 0.1701 |
+| Token transformation | 0.1921 | 0.1782 |
+| Attention rollout | 0.2019 | 0.1849 |
+| Causal patch impact | 0.2114 | 0.2005 |
+| Gradient x input | 0.2169 | 0.1948 |
+| Occlusion | 0.2271 | 0.1939 |
+| Kernel SHAP | 0.2556 | 0.2100 |
 
 TAM is the best default method in this run. It keeps the multi-layer attention
 flow of rollout, but filters attention paths using positive target-class
 gradients. That makes the maps more class-specific and more faithful by deletion
-AUC. Attention rollout is the strongest lightweight alternative. Occlusion and
-causal patch impact are useful intervention sanity checks, but the current
-causal implementation falls back to input-space patch replacement, so it behaves
-almost exactly like occlusion. SHAP is underpowered at 512 coalitions for a
-196-patch ViT grid and produces the weakest deletion score.
+AUC. Token transformation and attention rollout are the strongest lightweight
+alternatives. Causal patch impact and occlusion are useful intervention sanity
+checks; causal patch impact still uses input-space replacement, but now combines
+target-probability drop with the KL shift in the full output distribution. SHAP
+is underpowered at 512 coalitions for a 196-patch ViT grid and produces the
+weakest deletion score.
 
 <p align="center">
   <img src="readme_assets/deletion_auc_by_mode.png" width="45%" alt="Deletion AUC by method">
@@ -200,8 +201,9 @@ TAM is the report's primary explanation method. It produces the lowest deletion
 AUC and the most focused maps because it weights attention by positive
 target-class gradients.
 
-TAM achieves a deletion AUC of **0.1579**, which is lower than attention rollout
-at 0.2022 and much lower than Kernel SHAP at 0.2562. In this deletion test, the
+TAM achieves a deletion AUC of **0.1581**, which is lower than token
+transformation at 0.1921, attention rollout at 0.2019, and Kernel SHAP at
+0.2556. In this deletion test, the
 top-ranked patches are removed first; a lower curve means the method found
 patches that the prediction actually depends on. TAM's score therefore supports
 the visual result: the highlighted regions are not only plausible heatmaps, they
@@ -292,16 +294,18 @@ context-specific evidence.
 
 | Source context | Mean true-class probability drop |
 |---|---:|
-| **water** | **0.230** |
-| outdoor | 0.088 |
-| dim | 0.070 |
-| rock | 0.051 |
-| grass | 0.047 |
-| autumn | 0.025 |
+| **autumn** | **0.146** |
+| dim | 0.089 |
+| grass | -0.046 |
+| water | -0.141 |
+| rock | -0.160 |
+| outdoor | -0.198 |
 
-Across 200 swap pairs, the mean probability drop is 0.061 and 20% of swapped
-pairs change the predicted class. The report interprets water as the strongest
-shortcut context in this trained model.
+Across 200 swap pairs, 44% of swapped pairs change the predicted class. The
+signed probability drops show that top-attribution patches do not transfer
+cleanly across contexts: some source contexts lose true-class probability after
+replacement, while others gain it. This is an intervention result, not a pure
+background-removal score.
 
 <p align="center">
   <img src="readme_assets/context_swap_drop_by_context.png" width="45%" alt="Context swap probability drop by context">
@@ -541,22 +545,22 @@ Run the explanation methods:
 ```bash
 python scripts/run_xai.py \
   --checkpoint outputs/checkpoints/deit_pretrained/best_val_macro_f1.pt \
-  --checkpoint_name pretrained_best \
+  --checkpoint_name pretrained_best_corrected \
   --config configs/xai.yaml \
   --selected_samples outputs/metrics/xai/xai_selected_samples.csv \
   --data_root data/processed/nico \
   --split_dir data/splits \
-  --output_dir outputs/explanations/pretrained_best
+  --output_dir outputs/explanations/pretrained_best_corrected
 ```
 
 Aggregate plots and summaries:
 
 ```bash
 python scripts/plot_xai_results.py \
-  --explanation_dirs outputs/explanations/pretrained_best \
-  --names pretrained_best \
+  --explanation_dirs outputs/explanations/pretrained_best_corrected \
+  --names pretrained_best_corrected \
   --selected_samples outputs/metrics/xai/xai_selected_samples.csv \
-  --output_dir outputs/figures/xai
+  --output_dir outputs/figures/xai_corrected
 ```
 
 Implemented methods include token transformation, gradient x input, occlusion,
@@ -585,7 +589,7 @@ sbatch slurm/run_full_pretrained_xai_pipeline.sbatch
 | `outputs/metrics/deit_pretrained/test_metrics.json` | test accuracy, F1, balanced accuracy, class/context/group metrics |
 | `outputs/metrics/deit_pretrained/context_accuracy.csv` | context-wise accuracy |
 | `outputs/metrics/xai/xai_selected_samples.csv` | 200 stratified XAI samples |
-| `outputs/explanations/pretrained_best/<method>/` | per-sample maps, overlays, and CSVs |
+| `outputs/explanations/pretrained_best_corrected/<method>/` | per-sample maps, overlays, and CSVs |
 | `outputs/metrics/xai/evaluation/` | faithfulness, stability, and representation summaries |
 | `outputs/figures/` | generated plots used in the report |
 | `readme_assets/` | selected README-safe copies of report figures |
@@ -595,32 +599,34 @@ sbatch slurm/run_full_pretrained_xai_pipeline.sbatch
 NICO++ has no pixel-level object masks, so object-versus-background attribution
 is estimated qualitatively and through context swaps rather than segmentation
 metrics. Causal patch impact falls back to input-space ablation in this run,
-making it redundant with occlusion. SHAP uses only 512 coalitions, which is small
-for 196 dependent patch features. Results are for one DeiT-Small/16 checkpoint;
-larger ViTs or context-balanced training may change the ranking.
+so it should be read as intervention-style sensitivity rather than a full latent
+causal explanation. SHAP uses only 512 coalitions, which is small for 196
+dependent patch features. Results are for one DeiT-Small/16 checkpoint; larger
+ViTs or context-balanced training may change the ranking.
 
 ## Conclusion
 
 The fine-tuned DeiT-Small/16 performs well on NICO++, reaching 90.47% test
 accuracy and 0.9064 macro F1, but the XAI results show that high aggregate
 accuracy does not mean the model is context-invariant. The worst context is
-`dim` at 88.92%, and patch-level context swaps change 20% of predictions. The
+`dim` at 88.92%, and top-attribution patch swaps change 44% of predictions. The
 model has learned real object evidence, but it still uses scene evidence in
 measurable cases.
 
 TAM is the best explanation method in this project. It gives the lowest deletion
 AUC, produces the cleanest object-focused maps, and exposes context leakage more
-clearly than raw attention or rollout. The strongest practical workflow is:
-evaluate performance by context, generate TAM as the primary explanation, verify
-it against rollout and perturbation methods, and then inspect same-object
-cross-context panels before claiming that the model reasons from object features
-instead of background shortcuts.
+clearly than raw attention or rollout. Token transformation and attention
+rollout are the strongest lightweight alternatives. The strongest practical
+workflow is: evaluate performance by context, generate TAM as the primary
+explanation, verify it against rollout and perturbation methods, and then
+inspect same-object cross-context panels before claiming that the model reasons
+from object features instead of background shortcuts.
 
 The main takeaway is that context dependence is not all-or-nothing. Many
-predictions are mostly object-centered, but water and other distinctive
-backgrounds can shift evidence away from the object. A deployment audit should
-therefore combine accuracy, per-context metrics, faithfulness tests, and
-cross-context visual explanations.
+predictions are mostly object-centered, but distinctive backgrounds can shift
+evidence away from the object. A deployment audit should therefore combine
+accuracy, per-context metrics, faithfulness tests, and cross-context visual
+explanations.
 
 ## Citation
 

@@ -118,9 +118,9 @@ def main():
         if heats:
             method_agreement(heats, sid, args.output_dir, topk_frac=cfg.get("agreement_topk_frac", 0.1))
 
-        # Pick a heat for context_swap / counterfactual (prefer token_transformation)
+        # Pick a heat for context_swap / counterfactual (prefer the primary class-specific method).
         primary_heat = None
-        for pref in ("token_transformation", "tam", "attention_rollout", "occlusion", "shap"):
+        for pref in ("tam", "attention_rollout", "occlusion", "causal_patch_impact", "patch_attribution", "shap", "token_transformation"):
             if heats.get(pref) is not None:
                 primary_heat = heats[pref]
                 break

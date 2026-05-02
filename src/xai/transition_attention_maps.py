@@ -13,6 +13,7 @@ from src.utils.io import ensure_dir
 
 def tam_map(model, image, target, sample_id, out_dir):
     patch_timm_attention(model)
+    model.eval()
     model.zero_grad(set_to_none=True)
     logits = model(image.unsqueeze(0).to(next(model.parameters()).device))
     logits[0, int(target)].backward()

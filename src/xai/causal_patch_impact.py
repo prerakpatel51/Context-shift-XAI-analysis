@@ -35,9 +35,11 @@ def causal_patch_impact(model, image, label, sample_id, out_dir, patch_size=16, 
                 ml = model(xm)
                 mp = F.softmax(ml, dim=1)
                 kl = F.kl_div(mp.log(), probs, reduction="batchmean")
-            heat[r, c] = orig_prob - float(mp[0, target])
+            prob_drop = orig_prob - float(mp[0, target])
+            heat[r, c] = prob_drop + float(kl)
             rows.append({"sample_id": sample_id, "patch_row": r, "patch_col": c, "patch_logit_drop": orig_logit - float(ml[0, target]),
-                         "patch_prob_drop": heat[r, c], "patch_kl_divergence": float(kl), "context_name": context_name})
+                         "patch_prob_drop": prob_drop, "patch_kl_divergence": float(kl),
+                         "causal_impact_score": heat[r, c], "context_name": context_name})
     rows.append({"sample_id": sample_id, "patch_row": -1, "patch_col": -1, "causal_impact_entropy": entropy(heat)})
     out = ensure_dir(Path(out_dir) / "causal_patch_impact")
     np.save(out / f"{sample_id}_causal_impact.npy", heat)

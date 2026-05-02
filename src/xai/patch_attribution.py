@@ -17,7 +17,7 @@ def gradient_x_input(model, image, label, sample_id, out_dir, patch_size=16, out
     output_mode:
       - 'patch': average pixel attribution into patch grid (legacy).
       - 'pixel': keep full HxW pixel-level map.
-      - 'both' (default): save both, return pixel map.
+      - 'both' (default): save both, return patch map.
     """
     device = next(model.parameters()).device
     x = image.unsqueeze(0).to(device).requires_grad_(True)
@@ -43,4 +43,4 @@ def gradient_x_input(model, image, label, sample_id, out_dir, patch_size=16, out
         save_overlay(image, pix, out / f"{sample_id}_pixel_heatmap.png")
         np.save(out / f"{sample_id}_pixel_grid.npy", pix)
 
-    return pix if output_mode in ("pixel", "both") else grid
+    return pix if output_mode == "pixel" else grid

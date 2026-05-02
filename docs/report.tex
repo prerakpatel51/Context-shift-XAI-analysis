@@ -27,21 +27,38 @@
 \renewcommand{\thesubsection}{\Alph{subsection}}
 
 \graphicspath{%
+  {../outputs/figures/training/deit_pretrained/}%
+  {../outputs/figures/xai_corrected/}%
+  {../outputs/figures/xai/}%
+  {../outputs/figures/evaluation/axis1_stability/}%
+  {../outputs/figures/evaluation/axis2_faithfulness/}%
+  {../outputs/figures/evaluation/axis4_representation/}%
+  {../outputs/explanations/pretrained_best_corrected/token_transformation/}%
+  {../outputs/explanations/pretrained_best_corrected/attention_rollout/}%
+  {../outputs/explanations/pretrained_best_corrected/attention_weights/}%
+  {../outputs/explanations/pretrained_best_corrected/tam/}%
+  {../outputs/explanations/pretrained_best_corrected/occlusion/}%
+  {../outputs/explanations/pretrained_best_corrected/causal_patch_impact/}%
+  {../outputs/explanations/pretrained_best_corrected/patch_attribution/}%
+  {../outputs/explanations/pretrained_best_corrected/shap/}%
+  {../outputs/explanations/pretrained_best_corrected/context_swap/}%
+  {../outputs/explanations/pretrained_best_corrected/counterfactual/}%
   {outputs/figures/training/deit_pretrained/}%
+  {outputs/figures/xai_corrected/}%
   {outputs/figures/xai/}%
   {outputs/figures/evaluation/axis1_stability/}%
   {outputs/figures/evaluation/axis2_faithfulness/}%
   {outputs/figures/evaluation/axis4_representation/}%
-  {outputs/explanations/pretrained_best/token_transformation/}%
-  {outputs/explanations/pretrained_best/attention_rollout/}%
-  {outputs/explanations/pretrained_best/attention_weights/}%
-  {outputs/explanations/pretrained_best/tam/}%
-  {outputs/explanations/pretrained_best/occlusion/}%
-  {outputs/explanations/pretrained_best/causal_patch_impact/}%
-  {outputs/explanations/pretrained_best/patch_attribution/}%
-  {outputs/explanations/pretrained_best/shap/}%
-  {outputs/explanations/pretrained_best/context_swap/}%
-  {outputs/explanations/pretrained_best/counterfactual/}%
+  {outputs/explanations/pretrained_best_corrected/token_transformation/}%
+  {outputs/explanations/pretrained_best_corrected/attention_rollout/}%
+  {outputs/explanations/pretrained_best_corrected/attention_weights/}%
+  {outputs/explanations/pretrained_best_corrected/tam/}%
+  {outputs/explanations/pretrained_best_corrected/occlusion/}%
+  {outputs/explanations/pretrained_best_corrected/causal_patch_impact/}%
+  {outputs/explanations/pretrained_best_corrected/patch_attribution/}%
+  {outputs/explanations/pretrained_best_corrected/shap/}%
+  {outputs/explanations/pretrained_best_corrected/context_swap/}%
+  {outputs/explanations/pretrained_best_corrected/counterfactual/}%
 }
 
 \newcommand{\methodfig}[4]{%
@@ -94,7 +111,7 @@ Florida Institute of Technology\\
 \maketitle
 
 \begin{abstract}
-Vision Transformers (ViTs) classify images through patch tokens, which positions them well for patch-level explainability while leaving them exposed to context shortcuts. This paper studies an ImageNet-pretrained DeiT-Small/16 fine-tuned on NICO++, a 60-class object dataset with six annotated contexts. The model reaches 90.47\% test accuracy and 0.9064 macro-F1, though performance varies by context: the worst context is \emph{dim} at 88.92\%, and group accuracy spans 0.75 to 1.00. Eight patch-level explanation methods are compared token transformation, raw CLS attention, attention rollout, Transition Attention Maps (TAM), occlusion sensitivity, causal patch impact, gradient $\times$ input, and kernel SHAP using top-$k$ deletion AUC on 200 stratified samples. TAM is the most faithful method (AUC 0.1579), followed by attention rollout (0.2022); SHAP is weakest at 0.2562 under a 512-coalition budget. Patch-level context swapping shows that 20\% of same-class cross-context swaps flip the prediction, with the largest probability drops in the \emph{water} context. High accuracy does not guarantee context-invariant reasoning, and gradient-weighted transformer attention proves the most reliable explanation family for this DeiT/NICO++ setting.
+Vision Transformers (ViTs) classify images through patch tokens, which positions them well for patch-level explainability while leaving them exposed to context shortcuts. This paper studies an ImageNet-pretrained DeiT-Small/16 fine-tuned on NICO++, a 60-class object dataset with six annotated contexts. The model reaches 90.47\% test accuracy and 0.9064 macro-F1, though performance varies by context: the worst context is \emph{dim} at 88.92\%, and group accuracy spans 0.75 to 1.00. Eight patch-level explanation methods are compared token transformation, raw CLS attention, attention rollout, Transition Attention Maps (TAM), occlusion sensitivity, causal patch impact, gradient $\times$ input, and kernel SHAP using top-$k$ deletion AUC on 200 stratified samples. TAM is the most faithful method (AUC 0.1581), followed by token transformation (0.1921) and attention rollout (0.2019); SHAP is weakest at 0.2556 under a 512-coalition budget. Patch-level context swapping shows that 44\% of same-class cross-context swaps flip the prediction, with the largest positive probability drops in the \emph{autumn} and \emph{dim} contexts. High accuracy does not guarantee context-invariant reasoning, and gradient-weighted transformer attention proves the most reliable explanation family for this DeiT/NICO++ setting.
 \end{abstract}
 
 \noindent\textbf{Index Terms--} Vision Transformer, DeiT, NICO++, explainable AI, attention rollout, TAM, occlusion, SHAP, context shift.
@@ -108,7 +125,7 @@ The main contributions are:
 \begin{enumerate}
     \item an IEEE-style, reproducible report of DeiT-Small/16 fine-tuning on NICO++ with class-context metrics;
     \item a unified comparison of patch-level ViT explanations, including three representative sample panels per method;
-    \item a detailed analysis showing that TAM is the strongest explanation method by deletion AUC and that water-context patches induce the largest prediction shifts under patch-level swapping.
+    \item a detailed analysis showing that TAM is the strongest explanation method by deletion AUC and that top-attribution patch swaps expose context-dependent evidence transfer.
 \end{enumerate}
 
 \section{Literature Review and Positioning}
@@ -123,7 +140,7 @@ This project builds on work in Vision Transformers, transformer explanation, mod
 
 \textbf{Transition Attention Maps.} Yuan et al. proposed Transition Attention Maps (TAM), which weight attention by positive target-class gradients to isolate the attention paths that actually support the prediction \cite{yuan2021tam}. This report applies TAM to the NICO++ context-shift problem and benchmarks it against six other methods under a deletion-AUC protocol. TAM produces cleaner maps in the qualitative figures and achieves the lowest deletion AUC, making it the recommended method for this DeiT/NICO++ setting.
 
-\textbf{Causal ViT explanations.} Xie et al. framed ViT explanation as a causal patch intervention problem in ViT-CX, arguing that a patch matters only if intervening on it changes the prediction \cite{xie2023vitcx}. This report follows that framing, but the pipeline falls back to input-space patch replacement when latent intervention hooks are not available. As a result, causal patch impact behaves nearly identically to occlusion both methods score deletion AUC 0.2264. The comparison remains useful: it shows that causal patch impact adds something only when true latent-token intervention is implemented.
+\textbf{Causal ViT explanations.} Xie et al. framed ViT explanation as a causal patch intervention problem in ViT-CX, arguing that a patch matters only if intervening on it changes the prediction \cite{xie2023vitcx}. This report follows that framing, but the pipeline falls back to input-space patch replacement when latent intervention hooks are not available. The implemented score combines target-probability drop with the KL shift in the full predictive distribution, so it is stronger than plain occlusion but still not a full latent-token intervention. The comparison remains useful: it shows that causal patch impact adds most when intervention is tied directly to internal patch tokens.
 
 \textbf{Model-agnostic attribution.} Lundberg and Lee introduced SHAP as a Shapley-value framework for feature attribution \cite{lundberg2017unified}. This report applies it at the patch level, treating each of the 196 ViT patches as one feature. Spatial correlation among patches and the small coalition budget (512 samples for a 196-dimensional space) make the estimate noisy, and the results show it: SHAP has the weakest deletion AUC and the noisiest visual maps.
 
@@ -318,7 +335,7 @@ p_y(\mathbf{x})-p_y(\mathbf{x}^{(i)}).
 \]
 This score has two terms. The second term is the target-class probability drop, which is similar in spirit to occlusion. The first term is the KL divergence between the full predictive distribution before and after the patch intervention. That term gives credit to patches that change the model's overall belief state, even when the target-class probability drop alone is modest.
 
-Conceptually, causal patch impact is meant to be closer to an intervention than a correlation-based saliency method. A patch is important if changing it changes the model's output distribution. In a full latent-intervention implementation, one could intervene directly on internal patch tokens and separate input artifacts from representation-level causal effects. In this report, the implementation uses input-space patch replacement when latent intervention hooks are unavailable. That makes the method operationally close to occlusion, which explains why the deletion AUC is nearly identical for the two methods.
+Conceptually, causal patch impact is meant to be closer to an intervention than a correlation-based saliency method. A patch is important if changing it changes the model's output distribution. In a full latent-intervention implementation, one could intervene directly on internal patch tokens and separate input artifacts from representation-level causal effects. In this report, the implementation uses input-space patch replacement when latent intervention hooks are unavailable. That makes the method operationally close to occlusion, but the added KL term gives patches credit when they change the full predictive distribution even if the target-class probability drop is modest.
 
 The method is included because the KL term adds a diagnostic the class-drop alone misses: some patches redistribute probability among competing classes without strongly reducing the true-class score, and those patches matter for understanding failure modes. The interpretation here is appropriately limited causal patch impact is an intervention-style sensitivity score, not a full latent causal explanation.
 
@@ -401,18 +418,18 @@ Deletion AUC removes the top-ranked patches for $k\in\{5,10,20,30,50\}\%$ and in
 \toprule
 Method & AUC & Std.\\
 \midrule
-TAM & \textbf{0.1579} & 0.1711\\
-Attention rollout & 0.2022 & 0.1850\\
-Token transformation & 0.2236 & 0.1926\\
-Causal patch impact & 0.2264 & 0.1941\\
-Occlusion & 0.2264 & 0.1941\\
-Gradient $\times$ input & 0.2265 & 0.2021\\
-Kernel SHAP & 0.2562 & 0.2091\\
+TAM & \textbf{0.1581} & 0.1701\\
+Token transformation & 0.1921 & 0.1782\\
+Attention rollout & 0.2019 & 0.1849\\
+Causal patch impact & 0.2114 & 0.2005\\
+Gradient $\times$ input & 0.2169 & 0.1948\\
+Occlusion & 0.2271 & 0.1939\\
+Kernel SHAP & 0.2556 & 0.2100\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-TAM leads by a clear margin AUC 21.9\% lower than attention rollout and 38.4\% lower than SHAP. This fits its design: gradient filtering keeps only the attention paths that positively affect the target logit. Attention rollout is the strongest parameter-free method, which suggests the fine-tuned DeiT does route useful evidence through CLS attention in most correct predictions. Occlusion, causal impact, and gradient $\times$ input are nearly tied, confirming that their input-space sensitivity signals overlap on this model. SHAP performs worst: 512 coalitions are too few for stable Shapley estimation over 196 correlated patches.
+TAM leads by a clear margin AUC 21.7\% lower than attention rollout and 38.2\% lower than SHAP. This fits its design: gradient filtering keeps only the attention paths that positively affect the target logit. Token transformation is the strongest non-gradient diagnostic after correction, showing that cumulative token rewriting often aligns with evidence-bearing patches. Attention rollout remains the strongest lightweight attention baseline. Causal patch impact improves over occlusion because the KL term captures broader distribution changes, while SHAP performs worst: 512 coalitions are too few for stable Shapley estimation over 196 correlated patches.
 
 \begin{figure}[H]
 \centering
@@ -425,7 +442,7 @@ TAM leads by a clear margin AUC 21.9\% lower than attention rollout and 38.4\% l
 Each method is reported independently using the same six representative samples: \emph{cactus/dim}, \emph{airplane/autumn}, \emph{crab/dim}, \emph{horse/water}, \emph{fishing rod/water}, and \emph{train/autumn}. This gives every method its own result figure and analysis while keeping the comparison fair. The six cases include low-light, canonical object-centered, small-object, animal, vehicle, and water-context examples, so the visual comparison is not driven by a single easy sample.
 
 \subsection{Token Transformation Results}
-Token transformation shows where the transformer rewrites patch representations most strongly, not where class evidence is causal. In Fig.~\ref{fig:tt-results}, the cactus and airplane samples concentrate token changes on the object silhouette the ViT is spending representational capacity on object structure. The crab and horse samples are broader, with changes extending into surrounding dim or water texture: the model has to process both the object and its background before settling on the final class representation. The fishing-rod case highlights an additional constraint: a thin object occupying few patches forces representation change to spread into nearby scene structure because the transformer needs surrounding context to stabilize a narrow target. The train is more object-aligned a large rigid vehicle gives the model enough patches to work with. This pattern explains the middle-ranked deletion AUC: token transformation captures important processing regions, but those regions include context alongside object.
+Token transformation shows where the transformer rewrites patch representations most strongly, not where class evidence is causal. In Fig.~\ref{fig:tt-results}, the cactus and airplane samples concentrate token changes on the object silhouette the ViT is spending representational capacity on object structure. The crab and horse samples are broader, with changes extending into surrounding dim or water texture: the model has to process both the object and its background before settling on the final class representation. The fishing-rod case highlights an additional constraint: a thin object occupying few patches forces representation change to spread into nearby scene structure because the transformer needs surrounding context to stabilize a narrow target. The train is more object-aligned a large rigid vehicle gives the model enough patches to work with. This pattern explains the strong but non-leading deletion AUC: token transformation captures important processing regions, but those regions include context alongside object.
 
 \inplacesix{sample_00010732_token_transformation_overlay.png}{sample_00000001_token_transformation_overlay.png}{sample_00012227_token_transformation_overlay.png}{sample_00079663_token_transformation_overlay.png}{sample_00076958_token_transformation_overlay.png}{sample_00008127_token_transformation_overlay.png}{Token transformation results. Bright patches are tokens with the largest cumulative representation change across transformer blocks.}{fig:tt-results}
 
@@ -435,37 +452,37 @@ Raw final-layer CLS attention in Fig.~\ref{fig:rawattn-results} is stable and ea
 \inplacesix{sample_00010732_last_layer_cls_attention.png}{sample_00000001_last_layer_cls_attention.png}{sample_00012227_last_layer_cls_attention.png}{sample_00079663_last_layer_cls_attention.png}{sample_00076958_last_layer_cls_attention.png}{sample_00008127_last_layer_cls_attention.png}{Raw CLS attention results from the final transformer block. The maps are stable but not class-discriminative.}{fig:rawattn-results}
 
 \subsection{Attention Rollout Results}
-Rollout composes attention through all transformer blocks and usually produces cleaner maps than final-layer attention. In Fig.~\ref{fig:rollout-results}, it tracks the cactus body and airplane fuselage well and stays reasonably localized on the crab and train. The horse and fishing-rod water-context samples are less clean: rollout keeps object evidence but also preserves paths through surrounding water and scene patches. The deletion AUC of 0.2022 is second-best many rollout-ranked patches are genuinely important to the prediction. The persistent weakness is that rollout is class-agnostic: it follows attention flow without asking whether that flow supports the target class, which is why TAM consistently outperforms it.
+Rollout composes attention through all transformer blocks and usually produces cleaner maps than final-layer attention. In Fig.~\ref{fig:rollout-results}, it tracks the cactus body and airplane fuselage well and stays reasonably localized on the crab and train. The horse and fishing-rod water-context samples are less clean: rollout keeps object evidence but also preserves paths through surrounding water and scene patches. The deletion AUC of 0.2019 is strong but slightly behind token transformation and clearly behind TAM. The persistent weakness is that rollout is class-agnostic: it follows attention flow without asking whether that flow supports the target class, which is why TAM consistently outperforms it.
 
 \inplacesix{sample_00010732_rollout_overlay.png}{sample_00000001_rollout_overlay.png}{sample_00012227_rollout_overlay.png}{sample_00079663_rollout_overlay.png}{sample_00076958_rollout_overlay.png}{sample_00008127_rollout_overlay.png}{Attention rollout results. Composing attention across layers improves localization compared with raw final-layer attention.}{fig:rollout-results}
 
 \subsection{TAM Results}
-TAM is the strongest method in both qualitative and quantitative terms. In Fig.~\ref{fig:tam-results}, the maps are the most tightly object-centered: cactus body, airplane fuselage, crab region, and train body all receive concentrated heat. On the water-context horse and fishing-rod samples, TAM still localizes the object more cleanly than rollout, though some high-scoring patches remain in the surrounding scene. This residual context signal is worth noting rather than explaining away even the best method reveals that the classifier mixes object and context evidence when the scene is distinctive. With a deletion AUC of 0.1579, removing TAM's top patches collapses target probability faster than any other method. TAM is the primary explanation method for this model.
+TAM is the strongest method in both qualitative and quantitative terms. In Fig.~\ref{fig:tam-results}, the maps are the most tightly object-centered: cactus body, airplane fuselage, crab region, and train body all receive concentrated heat. On the water-context horse and fishing-rod samples, TAM still localizes the object more cleanly than rollout, though some high-scoring patches remain in the surrounding scene. This residual context signal is worth noting rather than explaining away even the best method reveals that the classifier mixes object and context evidence when the scene is distinctive. With a deletion AUC of 0.1581, removing TAM's top patches collapses target probability faster than any other method. TAM is the primary explanation method for this model.
 
 \inplacesix{sample_00010732_tam_overlay.png}{sample_00000001_tam_overlay.png}{sample_00012227_tam_overlay.png}{sample_00079663_tam_overlay.png}{sample_00076958_tam_overlay.png}{sample_00008127_tam_overlay.png}{TAM results. Positive gradient-weighted attention produces the most faithful and visually focused patch maps.}{fig:tam-results}
 
 \subsection{Occlusion Results}
-Occlusion maps in Fig.~\ref{fig:occ-results} are blockier than attention-based ones each probe operates on a discrete $16\times16$ patch but the interpretation is direct. The airplane result is the most intuitive: fuselage and wing regions matter most. The cactus stays object-aligned, though the dim background introduces some scattered sensitivity. The crab and horse results spread into context; removing dim-scene or water-adjacent patches also lowers confidence. The fishing-rod sample is especially sensitive to nearby background because the thin object has few exclusive patches. Occlusion is a useful sanity check, but at 196 forward passes per image it is slow, and its AUC of 0.2264 falls well behind TAM.
+Occlusion maps in Fig.~\ref{fig:occ-results} are blockier than attention-based ones each probe operates on a discrete $16\times16$ patch but the interpretation is direct. The airplane result is the most intuitive: fuselage and wing regions matter most. The cactus stays object-aligned, though the dim background introduces some scattered sensitivity. The crab and horse results spread into context; removing dim-scene or water-adjacent patches also lowers confidence. The fishing-rod sample is especially sensitive to nearby background because the thin object has few exclusive patches. Occlusion is a useful sanity check, but at 196 forward passes per image it is slow, and its AUC of 0.2271 falls well behind TAM.
 
 \inplacesix{sample_00010732_occlusion_overlay.png}{sample_00000001_occlusion_overlay.png}{sample_00012227_occlusion_overlay.png}{sample_00079663_occlusion_overlay.png}{sample_00076958_occlusion_overlay.png}{sample_00008127_occlusion_overlay.png}{Occlusion sensitivity results. High-saliency patches are those whose removal most reduces target evidence.}{fig:occ-results}
 
 \subsection{Causal Patch Impact Results}
-Causal patch impact is designed to measure the distributional effect of intervening on each patch, but because this run uses an input-space fallback, Fig.~\ref{fig:causal-results} looks nearly identical to occlusion the deletion AUC matches as well at 0.2264. The added KL term provides a slightly broader view: a patch that redistributes probability across classes without strongly reducing the true-class score will still score high. But the visual maps do not differ enough to change any conclusions. True latent-token intervention would be needed to make causal patch impact meaningfully distinct from occlusion.
+Causal patch impact is designed to measure the distributional effect of intervening on each patch. Because this run uses an input-space fallback, Fig.~\ref{fig:causal-results} remains visually close to occlusion, but the KL term makes the ranking somewhat different and improves deletion AUC to 0.2114. A patch that redistributes probability across classes without strongly reducing the true-class score can still score high. True latent-token intervention would be needed to make causal patch impact a stronger causal explanation rather than an intervention-style sensitivity score.
 
 \inplacesix{sample_00010732_causal_impact_overlay.png}{sample_00000001_causal_impact_overlay.png}{sample_00012227_causal_impact_overlay.png}{sample_00079663_causal_impact_overlay.png}{sample_00076958_causal_impact_overlay.png}{sample_00008127_causal_impact_overlay.png}{Causal patch impact results. With input-space fallback, the maps behave similarly to occlusion but include distribution-shift information.}{fig:causal-results}
 
 \subsection{Gradient $\times$ Input Results}
-Gradient $\times$ input is fast and class-specific, but unreliable in several of these samples. The dim cactus gets weaker and more fragmented attribution because the score multiplies gradients by low-magnitude pixels. The airplane and train are sharper stronger contrast and larger coherent shapes help. The crab, horse, and fishing-rod maps scatter across both object and texture. With deletion AUC 0.2265 and lower stability than rollout under Gaussian noise, this method is best used as a secondary diagnostic: when gradient maps agree with TAM, both attention flow and local sensitivity support the same evidence; when they fragment, the sample is locally unstable and deserves closer inspection.
+Gradient $\times$ input is fast and class-specific, but unreliable in several of these samples. The dim cactus gets weaker and more fragmented attribution because the score multiplies gradients by low-magnitude pixels. The airplane and train are sharper stronger contrast and larger coherent shapes help. The crab, horse, and fishing-rod maps scatter across both object and texture. With deletion AUC 0.2169 and lower stability than rollout under Gaussian noise, this method is best used as a secondary diagnostic: when gradient maps agree with TAM, both attention flow and local sensitivity support the same evidence; when they fragment, the sample is locally unstable and deserves closer inspection.
 
 \inplacesix{sample_00010732_patch_heatmap.png}{sample_00000001_patch_heatmap.png}{sample_00012227_patch_heatmap.png}{sample_00079663_patch_heatmap.png}{sample_00076958_patch_heatmap.png}{sample_00008127_patch_heatmap.png}{Gradient $\times$ input results. The method is class-specific but brittle, especially in low-light and context-heavy samples.}{fig:grad-results}
 
 \subsection{Kernel SHAP Results}
-Kernel SHAP maps in Fig.~\ref{fig:shap-results} are visibly noisier than TAM or rollout. The airplane and train still show object signal strong visual structure helps the coalition sampling converge but the cactus, crab, horse, and fishing-rod maps scatter high values in ways that are hard to interpret. SHAP has the worst deletion AUC at 0.2562. The six-sample panel makes the reason clear: 512 coalitions are not enough for stable Shapley estimation over 196 correlated patches. SHAP is not theoretically weak, just underpowered here. A larger coalition budget would likely improve the maps, at considerably higher runtime cost.
+Kernel SHAP maps in Fig.~\ref{fig:shap-results} are visibly noisier than TAM or rollout. The airplane and train still show object signal strong visual structure helps the coalition sampling converge but the cactus, crab, horse, and fishing-rod maps scatter high values in ways that are hard to interpret. SHAP has the worst deletion AUC at 0.2556. The six-sample panel makes the reason clear: 512 coalitions are not enough for stable Shapley estimation over 196 correlated patches. SHAP is not theoretically weak, just underpowered here. A larger coalition budget would likely improve the maps, at considerably higher runtime cost.
 
 \inplacesix{sample_00010732_shap_overlay.png}{sample_00000001_shap_overlay.png}{sample_00012227_shap_overlay.png}{sample_00079663_shap_overlay.png}{sample_00076958_shap_overlay.png}{sample_00008127_shap_overlay.png}{Kernel SHAP results. At the tested coalition budget, maps are noisy and least faithful by deletion AUC.}{fig:shap-results}
 
 \subsection{Context Swap and Counterfactual Results}
-Across 200 same-class cross-context pairs, the mean probability drop is 0.061 and the median is near zero, but 20\% of swaps flip the predicted class. The largest average drop is in \emph{water} at 0.2299, suggesting that water patches are highly predictive in NICO++ several classes are strongly associated with marine settings, and the model appears to have picked up on it.
+Across 200 same-class cross-context pairs, replacing the top 25\% TAM-attributed patches flips the predicted class in 44\% of swaps. The mean signed true-class probability change depends strongly on source context: \emph{autumn} and \emph{dim} show positive average drops, while \emph{outdoor}, \emph{rock}, and \emph{water} often increase true-class probability after replacement. This signed behavior is important: top-attribution swaps are not a pure background-removal test, but an intervention showing that evidence does not transfer cleanly across contexts.
 
 \begin{table}[H]
 \centering
@@ -475,12 +492,12 @@ Across 200 same-class cross-context pairs, the mean probability drop is 0.061 an
 \toprule
 Source context & Mean drop\\
 \midrule
-water & \textbf{0.2299}\\
-outdoor & 0.0883\\
-dim & 0.0697\\
-rock & 0.0511\\
-grass & 0.0467\\
-autumn & 0.0254\\
+autumn & \textbf{0.1459}\\
+dim & 0.0894\\
+grass & -0.0460\\
+water & -0.1407\\
+rock & -0.1605\\
+outdoor & -0.1984\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -489,7 +506,7 @@ autumn & 0.0254\\
 \centering
 \begin{subfigure}[t]{.48\linewidth}\includegraphics[width=\linewidth]{context_swap_drop_by_context.png}\caption{Drop by context}\end{subfigure}
 \begin{subfigure}[t]{.48\linewidth}\includegraphics[width=\linewidth]{context_swap_probability_drop_hist.png}\caption{Drop histogram}\end{subfigure}
-\caption{Context-swap results over 200 pairs. Water is the strongest context shortcut.}
+\caption{Context-swap results over 200 pairs. Top-attribution swaps show context-dependent evidence transfer, including both positive and negative signed probability drops.}
 \label{fig:swap}
 \end{figure}
 
@@ -525,12 +542,12 @@ Representation metrics follow a depth pattern. CLS top-10\% concentration rises 
 
 \textbf{SHAP needs a larger budget.} SHAP is theoretically attractive, but the tested 512-coalition setting is underpowered for 196 dependent patch features. Its maps are noisy and its AUC is worst. A much larger coalition budget may improve quality, but with substantial runtime cost.
 
-\textbf{Context dependence remains after high accuracy.} Many predictions are genuinely object-centered the model has not simply memorized backgrounds. But the water swap result and the water-context horse and fishing-rod samples show that context still influences decisions. The same-object panels make this concrete: cactus, horse, fishing rod, and train explanations shift when the background changes, especially in water-like settings. Aggregate accuracy hides this localized reliance.
+\textbf{Context dependence remains after high accuracy.} Many predictions are genuinely object-centered the model has not simply memorized backgrounds. But the top-attribution swap results and the water-context horse and fishing-rod samples show that context still influences decisions. The same-object panels make this concrete: cactus, horse, fishing rod, and train explanations shift when the background changes, especially in visually distinctive settings. Aggregate accuracy hides this localized reliance.
 
 \textbf{Practical implication.} For a deployment audit, picking a single saliency map and stopping is not enough. A more complete workflow: evaluate per context first; generate TAM as the primary explanation; compare against rollout and perturbation methods; run deletion AUC to validate faithfulness; and check same-object cross-context panels to see whether evidence drifts from object to background. Visual inspection alone misses too much.
 
 \section{Limitations}
-NICO++ does not provide pixel-level object masks, so object-versus-background attribution is assessed qualitatively and through context swaps rather than exact segmentation metrics. The causal patch impact method falls back to input-space ablation, which makes it redundant with occlusion in this run. SHAP uses 512 coalitions due to runtime constraints; a larger budget could change its ranking. Counterfactual perturbations are model-facing diagnostics and should not be read as human-realistic edited images. The analysis covers one DeiT-Small/16 checkpoint; results for larger ViTs or context-balanced training may differ.
+NICO++ does not provide pixel-level object masks, so object-versus-background attribution is assessed qualitatively and through context swaps rather than exact segmentation metrics. The causal patch impact method falls back to input-space ablation, so it should be read as intervention-style sensitivity rather than full latent causal explanation. SHAP uses 512 coalitions due to runtime constraints; a larger budget could change its ranking. Counterfactual perturbations are model-facing diagnostics and should not be read as human-realistic edited images. The analysis covers one DeiT-Small/16 checkpoint; results for larger ViTs or context-balanced training may differ.
 
 \clearpage
 \section{Same Object Across Different Contexts}
@@ -542,7 +559,7 @@ These panels ask a different question than the earlier method-comparison figures
 \subsection{Cactus Across Six Contexts}
 Fig.~\ref{fig:cactus-tam-contexts} compares \emph{cactus} across all six NICO++ contexts: \emph{autumn}, \emph{dim}, \emph{grass}, \emph{rock}, \emph{water}, and \emph{outdoor}. TAM stays mostly on the cactus body in the dim, grass, rock, and outdoor cases object shape rather than background is driving the prediction. The dim example is notable: even under low contrast, the highlighted region follows the cactus silhouette rather than spreading across the dark scene.
 
-The water-context case is less clean. The heatmap still reaches the cactus, but surrounding scene patches receive more emphasis than in the other five contexts consistent with water producing the largest true-class probability drop in the swap experiment. Cactus predictions are usually object-driven, but water redistributes the evidence enough that background patches become meaningfully involved.
+The water-context case is less clean. The heatmap still reaches the cactus, but surrounding scene patches receive more emphasis than in the other five contexts. Cactus predictions are usually object-driven, but water redistributes the evidence enough that background patches become meaningfully involved.
 
 \begin{center}
 \begin{minipage}[t]{.16\linewidth}\centering\includegraphics[width=\linewidth]{sample_00000951_tam_overlay.png}\\[-1pt]\footnotesize (a) Autumn\end{minipage}\hfill
@@ -615,9 +632,9 @@ Across cactus, horse, fishing rod, and train, the same pattern holds with varyin
 Context dependence is not a binary property. Every object panel shows some object-centered evidence, so the model is not simply a background classifier. But the same object receives different explanations across contexts, so it is not purely object-centered either. The mixture of object and context evidence shifts with class, object size, shape, and scene type. That is why cross-context XAI panels matter: a single correct prediction with a clean heatmap is not enough evidence of robust object reasoning.
 
 \section{Conclusion}
-A high-performing DeiT-Small/16 on NICO++ still uses context as evidence in measurable ways. The model reaches 90.47\% accuracy and 0.9064 macro-F1, but worst-context accuracy drops to 88.92\% and 20\% of patch-level context swaps flip predictions. TAM is the best explanation method by deletion AUC and by visual inspection: it produces the most faithful and focused maps. Attention rollout is the strongest lightweight alternative; occlusion and causal patch impact work as sanity checks; gradient $\times$ input is fast but brittle; and SHAP needs a larger coalition budget to be useful.
+A high-performing DeiT-Small/16 on NICO++ still uses context as evidence in measurable ways. The model reaches 90.47\% accuracy and 0.9064 macro-F1, but worst-context accuracy drops to 88.92\% and 44\% of top-attribution patch swaps flip predictions. TAM is the best explanation method by deletion AUC and by visual inspection: it produces the most faithful and focused maps. Token transformation and attention rollout are the strongest lightweight alternatives; causal patch impact and occlusion work as intervention sanity checks; gradient $\times$ input is fast but brittle; and SHAP needs a larger coalition budget to be useful.
 
-The same-object comparisons make the finding concrete: when the object label stays fixed and only the context changes, explanations shift. Cactus, horse, fishing rod, and train all show stronger background leakage in at least one context, with water-like scenes as the most consistent source consistent with the swap experiment's finding that water is the strongest shortcut context. Aggregate accuracy is not enough for a deployment audit. The more informative workflow is to evaluate per context, use TAM as the primary explanation, validate it against rollout and perturbation methods, and check same-object cross-context panels before concluding that the model reasons about objects rather than scenes.
+The same-object comparisons make the finding concrete: when the object label stays fixed and only the context changes, explanations shift. Cactus, horse, fishing rod, and train all show stronger background leakage in at least one context, with water-like and outdoor scenes often pulling saliency away from the object. Aggregate accuracy is not enough for a deployment audit. The more informative workflow is to evaluate per context, use TAM as the primary explanation, validate it against rollout and perturbation methods, and check same-object cross-context panels before concluding that the model reasons about objects rather than scenes.
 
 \begin{thebibliography}{99}\small
 

@@ -54,12 +54,10 @@ def _save_image(image, path):
 
 
 def context_swap_attribution(model, ds, index_by_sample_id, sample_id, image, label, heat, out_dir, cfg):
-    """Swap low-attribution same-class/different-context patches as context evidence.
+    """Swap top-attribution patches with a same-class/different-context image.
 
-    Without object masks, low-attribution patches are used as a conservative
-    proxy for background/context. A same-class image from a different context
-    provides the donor patches, so the class label is controlled while context
-    changes.
+    A same-class image from a different context provides the donor patches, so
+    the class label is controlled while the attributed evidence is changed.
     """
     row = ds.df.iloc[index_by_sample_id[str(sample_id)]]
     class_name = str(row.class_name)
@@ -74,7 +72,7 @@ def context_swap_attribution(model, ds, index_by_sample_id, sample_id, image, la
     partner = ds[int(partner_row.name)]["image"]
     patch_size = int(cfg.get("patch_size", 16))
     swap_fraction = float(cfg.get("context_swap", {}).get("swap_fraction", 0.25))
-    patch_idxs = _patch_indices(heat, swap_fraction, largest=False)
+    patch_idxs = _patch_indices(heat, swap_fraction, largest=True)
     swapped = _swap_patches(image, partner, patch_idxs, patch_size)
 
     orig_pred, orig_conf, orig_probs = _prob_row(model, image)
